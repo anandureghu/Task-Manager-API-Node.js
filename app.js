@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 require('dotenv').config();
+require('express-async-errors');
 
 // Import Router
 const authenticationRouter = require('./routes/auth');
@@ -14,7 +15,24 @@ const errorHandlerMiddleware = require('./middleware/error-handler');
 const notFoundMiddleware = require('./middleware/not-found');
 const authenticationMiddleware = require('./middleware/auth');
 
+// Extra security
+const helmet = require('helmet');
+const xss = require('xss-clean');
+const cors = require('cors');
+const rateLimiter = require('express-rate-limit');
+
+app.set('trust proxy', 1);
+app.use(
+    rateLimiter({
+        windowMs: 15 * 60 * 1000,
+        max: 100
+    })
+);
+
 app.use(express.json());
+app.use(helmet());
+app.use(cors());
+app.use(xss());
 
 app.get("/", (req, res)=>{
     res.send("Task Manager API");
